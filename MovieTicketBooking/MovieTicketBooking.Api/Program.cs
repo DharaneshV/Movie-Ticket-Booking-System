@@ -1,22 +1,28 @@
 using Microsoft.EntityFrameworkCore;
+using MovieTicketBooking.Core.Repositories.Interfaces;
+using MovieTicketBooking.Core.Services.Interfaces;
+using MovieTicketBooking.Application.Services;
 using MovieTicketBooking.Infrastructure.Data;
+using MovieTicketBooking.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
 
-// Register ApplicationDbContext from Infrastructure layer
+// Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// Register Repositories and Services
+builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+builder.Services.AddScoped<IMovieService, MovieService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
