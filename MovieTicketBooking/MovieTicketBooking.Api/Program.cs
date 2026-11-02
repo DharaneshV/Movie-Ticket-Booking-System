@@ -24,6 +24,9 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
 builder.Services.AddScoped<ITheatreService, TheatreService>();
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+
 builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
 builder.Services.AddScoped<IScreenService, ScreenService>();
 
@@ -42,7 +45,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
+app.UseExceptionHandler();
 app.MapControllers();
 
 app.Run();
