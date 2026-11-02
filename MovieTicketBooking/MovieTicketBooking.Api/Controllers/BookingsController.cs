@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieTicketBooking.Core.DTOs.Bookings;
 using MovieTicketBooking.Core.Services.Interfaces;
 
 namespace MovieTicketBooking.Api.Controllers;
 
+[Authorize]
 [Route("api/bookings")]
 [ApiController]
 public class BookingsController : ControllerBase
@@ -39,7 +41,7 @@ public class BookingsController : ControllerBase
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(ex.Message); // 409 Conflict if seat is already taken[cite: 10]
+            return Conflict(ex.Message); // 409 Conflict if seat is already taken
         }
         catch (ArgumentException ex)
         {

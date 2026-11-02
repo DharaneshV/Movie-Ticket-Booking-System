@@ -7,6 +7,7 @@ public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+    public DbSet<User> Users => Set<User>();
     public DbSet<Movie> Movies => Set<Movie>();
     public DbSet<Theatre> Theatres => Set<Theatre>();
     public DbSet<Screen> Screens => Set<Screen>();

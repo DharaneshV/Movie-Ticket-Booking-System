@@ -1,4 +1,4 @@
-using MovieTicketBooking.Core.Entities;
+using MovieTicketBooking.Core.Models;
 
 namespace MovieTicketBooking.Core.Repositories.Interfaces;
 

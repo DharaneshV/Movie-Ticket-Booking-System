@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using MovieTicketBooking.Core.Entities;
+using MovieTicketBooking.Core.Models;
 using MovieTicketBooking.Core.Repositories.Interfaces;
 using MovieTicketBooking.Infrastructure.Data;
 

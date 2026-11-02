@@ -1,4 +1,4 @@
-namespace MovieTicketBooking.Core.Entities;
+namespace MovieTicketBooking.Core.Models;
 
 public class User
 {

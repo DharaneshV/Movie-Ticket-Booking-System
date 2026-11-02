@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using MovieTicketBooking.Core.Entities;
+using MovieTicketBooking.Core.Models;
 using MovieTicketBooking.Application.Interfaces;
 
 namespace MovieTicketBooking.Infrastructure.Services;

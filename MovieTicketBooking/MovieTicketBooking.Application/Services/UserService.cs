@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using MovieTicketBooking.Application.DTOs.Auth;
 using MovieTicketBooking.Application.Interfaces;
-using MovieTicketBooking.Core.Entities;
+using MovieTicketBooking.Core.Models;
 using MovieTicketBooking.Core.Repositories.Interfaces;
 
 namespace MovieTicketBooking.Application.Services;

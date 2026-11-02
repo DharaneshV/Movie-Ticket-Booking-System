@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Configuration;
 using System.IO;
 
 namespace MovieTicketBooking.Infrastructure.Data;
@@ -19,7 +18,8 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        builder.UseSqlServer(connectionString);
+        builder.UseSqlServer(connectionString,
+            sqlOptions => sqlOptions.EnableRetryOnFailure());
 
         return new ApplicationDbContext(builder.Options);
     }
