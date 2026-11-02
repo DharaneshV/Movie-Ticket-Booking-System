@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MovieTicketBooking.Core.Constants;
 using MovieTicketBooking.Core.DTOs.Theatres;
 using MovieTicketBooking.Core.Services.Interfaces;
 
@@ -22,6 +24,7 @@ public class TheatresController : ControllerBase
         return Ok(theatre);
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpPost]
     public async Task<ActionResult<TheatreResponse>> Create([FromBody] CreateTheatreRequest request)
     {
@@ -29,6 +32,7 @@ public class TheatresController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.TheatreId }, created);
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTheatreRequest request)
     {
@@ -36,6 +40,7 @@ public class TheatresController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

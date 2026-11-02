@@ -22,10 +22,12 @@ public class BookingService : IBookingService
         return bookings.Select(MapToBookingResponse);
     }
 
-    public async Task<BookingResponse?> GetBookingByIdAsync(int id)
+    public async Task<BookingResponse?> GetBookingByIdAsync(int id, int? userId = null)
     {
         var booking = await _bookingRepository.GetByIdAsync(id);
-        return booking == null ? null : MapToBookingResponse(booking);
+        if (booking == null) return null;
+        if (userId.HasValue && booking.UserId != userId.Value) return null;
+        return MapToBookingResponse(booking);
     }
 
     public async Task<IEnumerable<BookingResponse>> GetBookingsByShowIdAsync(int showId)
@@ -34,14 +36,14 @@ public class BookingService : IBookingService
         return bookings.Select(MapToBookingResponse);
     }
 
-    public async Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request)
+    public async Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request, int userId, string customerName, string customerEmail)
     {
         var show = await _showRepository.GetByIdAsync(request.ShowId);
         if (show == null) throw new KeyNotFoundException("Show not found.");
 
         // Verify distinct seat IDs
-        var distinctSeatIds = request.SeatIds.Distinct().ToList();
-        if (!distinctSeatIds.Any()) throw new ArgumentException("At least one seat must be selected.");
+        var distinctSeatIds = request.SeatIds?.Distinct().ToList() ?? new List<int>();
+        if (!distinctSeatIds.Any()) throw new ArgumentException("Choose at least one seat.");
 
         var showSeatsToUpdate = new List<ShowSeat>();
         var bookingSeats = new List<BookingSeat>();
@@ -55,7 +57,6 @@ public class BookingService : IBookingService
 
             showSeatsToUpdate.Add(showSeat);
 
-            // Server-side price calculation (trusted data)[cite: 10]
             decimal seatPrice = show.TicketPrice;
             totalAmount += seatPrice;
 
@@ -66,15 +67,15 @@ public class BookingService : IBookingService
             });
         }
 
-        // Temporary reference generation (will update with BookingId after save)
         var tempReference = $"MOV-{Guid.NewGuid().ToString().Substring(0, 8).ToUpper()}";
 
         var booking = new Booking
         {
             BookingReference = tempReference,
             ShowId = request.ShowId,
-            CustomerName = request.CustomerName,
-            CustomerEmail = request.CustomerEmail,
+            UserId = userId,
+            CustomerName = customerName,
+            CustomerEmail = customerEmail,
             CustomerPhone = request.CustomerPhone,
             BookingDate = DateTime.UtcNow,
             TotalAmount = totalAmount,
@@ -85,16 +86,18 @@ public class BookingService : IBookingService
 
         // Update booking reference with actual ID for cleaner formatting
         createdBooking.BookingReference = $"MOV{createdBooking.BookingId}";
-        await _bookingRepository.CancelBookingAsync(createdBooking, Enumerable.Empty<ShowSeat>()); // Save ref update or handle via update
+        await _bookingRepository.CancelBookingAsync(createdBooking, Enumerable.Empty<ShowSeat>());
 
         var fullBooking = await _bookingRepository.GetByIdAsync(createdBooking.BookingId);
         return MapToBookingResponse(fullBooking!);
     }
 
-    public async Task<bool> CancelBookingAsync(int id)
+    public async Task<(bool Success, string? Error)> CancelBookingAsync(int id, int? userId = null)
     {
         var booking = await _bookingRepository.GetByIdAsync(id);
-        if (booking == null || booking.Status != "Confirmed") return false;
+        if (booking == null) return (false, "Booking not found.");
+        if (userId.HasValue && booking.UserId != userId.Value) return (false, "You cannot cancel another customer's booking.");
+        if (booking.Status == "Cancelled") return (false, "Booking is already cancelled.");
 
         var showSeatsToRelease = new List<ShowSeat>();
         foreach (var bs in booking.BookingSeats)
@@ -104,7 +107,7 @@ public class BookingService : IBookingService
         }
 
         await _bookingRepository.CancelBookingAsync(booking, showSeatsToRelease);
-        return true;
+        return (true, null);
     }
 
     private static BookingResponse MapToBookingResponse(Booking b) => new()

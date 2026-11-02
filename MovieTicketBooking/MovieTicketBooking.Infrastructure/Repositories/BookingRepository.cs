@@ -24,6 +24,11 @@ public class BookingRepository : IBookingRepository
             .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)
             .FirstOrDefaultAsync(b => b.BookingId == id);
 
+    public async Task<Booking?> GetByIdForUpdateAsync(int id) =>
+        await _context.Bookings
+            .Include(b => b.BookingSeats)
+            .FirstOrDefaultAsync(b => b.BookingId == id);
+
     public async Task<IEnumerable<Booking>> GetByShowIdAsync(int showId) =>
         await _context.Bookings
             .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)

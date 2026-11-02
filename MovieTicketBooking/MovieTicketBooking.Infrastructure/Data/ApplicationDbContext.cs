@@ -21,6 +21,13 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Users
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.UserId);
+            entity.HasIndex(u => u.Email).IsUnique();
+        });
+
         // Movies
         modelBuilder.Entity<Movie>(entity =>
         {
@@ -58,14 +65,14 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(s => s.SeatId);
             entity.Property(s => s.RowName).IsRequired().HasMaxLength(5);
-            entity.Property(s => s.SeatType).IsRequired().HasMaxLength(30);
+            entity.Property(s => s.SeatNumber).IsRequired();
+            entity.Property(s => s.SeatType).IsRequired().HasMaxLength(20);
             entity.HasIndex(s => new { s.ScreenId, s.RowName, s.SeatNumber }).IsUnique();
-            entity.ToTable(t => t.HasCheckConstraint("CK_Seat_SeatNumber", "[SeatNumber] > 0"));
 
             entity.HasOne(s => s.Screen)
                   .WithMany(sc => sc.Seats)
                   .HasForeignKey(s => s.ScreenId)
-                  .OnDelete(DeleteBehavior.Restrict);
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Shows
@@ -73,8 +80,7 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(s => s.ShowId);
             entity.Property(s => s.TicketPrice).HasColumnType("decimal(10,2)");
-            entity.ToTable(t => t.HasCheckConstraint("CK_Show_TicketPrice", "[TicketPrice] >= 0"));
-            entity.ToTable(t => t.HasCheckConstraint("CK_Show_EndTime", "[EndTime] > [StartTime]"));
+            entity.ToTable(t => t.HasCheckConstraint("CK_Show_TicketPrice", "[TicketPrice] > 0"));
 
             entity.HasOne(s => s.Movie)
                   .WithMany(m => m.Shows)
@@ -121,6 +127,11 @@ public class ApplicationDbContext : DbContext
             entity.HasOne(b => b.Show)
                   .WithMany(s => s.Bookings)
                   .HasForeignKey(b => b.ShowId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(b => b.User)
+                  .WithMany()
+                  .HasForeignKey(b => b.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
 

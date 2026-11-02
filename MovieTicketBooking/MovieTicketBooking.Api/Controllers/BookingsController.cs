@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MovieTicketBooking.Core.Constants;
 using MovieTicketBooking.Core.DTOs.Bookings;
 using MovieTicketBooking.Core.Services.Interfaces;
 
@@ -8,52 +10,79 @@ namespace MovieTicketBooking.Api.Controllers;
 [Authorize]
 [Route("api/bookings")]
 [ApiController]
-public class BookingsController : ControllerBase
+public class BookingsController(IBookingService service) : ControllerBase
 {
-    private readonly IBookingService _bookingService;
-    public BookingsController(IBookingService bookingService) => _bookingService = bookingService;
+    private int? GetCurrentUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(value, out var userId) ? userId : null;
+    }
 
+    // Admin can view all bookings
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<BookingResponse>>> GetAll() => Ok(await _bookingService.GetAllBookingsAsync());
+    public async Task<ActionResult<IEnumerable<BookingResponse>>> GetAll() => Ok(await service.GetAllBookingsAsync());
 
+    // Customer can view own booking. Admin can view any booking.
+    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BookingResponse>> GetById(int id)
     {
-        var booking = await _bookingService.GetBookingByIdAsync(id);
+        int? userId = User.IsInRole(UserRoles.Admin) ? null : GetCurrentUserId();
+        if (userId is null && !User.IsInRole(UserRoles.Admin)) return Unauthorized();
+
+        var booking = await service.GetBookingByIdAsync(id, userId);
         if (booking == null) return NotFound();
         return Ok(booking);
     }
 
+    // Admin can view bookings for a particular show
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpGet("show/{showId:int}")]
-    public async Task<ActionResult<IEnumerable<BookingResponse>>> GetByShow(int showId) => Ok(await _bookingService.GetBookingsByShowIdAsync(showId));
+    public async Task<ActionResult<IEnumerable<BookingResponse>>> ByShow(int showId) => Ok(await service.GetBookingsByShowIdAsync(showId));
 
+    // Customer/Admin can create bookings
+    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
     [HttpPost]
-    public async Task<ActionResult<BookingResponse>> Create([FromBody] CreateBookingRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
     {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var name = User.FindFirstValue(ClaimTypes.Name);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        if (name is null || email is null) return Unauthorized();
+
         try
         {
-            var created = await _bookingService.CreateBookingAsync(request);
+            var created = await service.CreateBookingAsync(request, userId.Value, name, email);
             return CreatedAtAction(nameof(GetById), new { id = created.BookingId }, created);
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(ex.Message);
+            return NotFound(new { message = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(ex.Message); // 409 Conflict if seat is already taken
+            return Conflict(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
     }
 
+    // Customer can cancel own booking. Admin can cancel any booking.
+    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
     [HttpPut("{id:int}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
-        var success = await _bookingService.CancelBookingAsync(id);
-        if (!success) return Conflict("Booking not found or already cancelled.");
-        return Ok(new { message = "Booking successfully cancelled and seats released." });
+        int? userId = User.IsInRole(UserRoles.Admin) ? null : GetCurrentUserId();
+        if (userId is null && !User.IsInRole(UserRoles.Admin)) return Unauthorized();
+
+        var result = await service.CancelBookingAsync(id, userId);
+        return result.Success
+            ? Ok(new { message = "Booking successfully cancelled and seats released." })
+            : BadRequest(new { message = result.Error });
     }
 }

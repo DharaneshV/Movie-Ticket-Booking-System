@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MovieTicketBooking.Core.Constants;
 using MovieTicketBooking.Core.DTOs.Screens;
 using MovieTicketBooking.Core.Services.Interfaces;
 
@@ -25,6 +27,7 @@ public class ScreensController : ControllerBase
     [HttpGet("theatre/{theatreId:int}")]
     public async Task<ActionResult<IEnumerable<ScreenResponse>>> GetByTheatre(int theatreId) => Ok(await _screenService.GetScreensByTheatreIdAsync(theatreId));
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpPost]
     public async Task<ActionResult<ScreenResponse>> Create([FromBody] CreateScreenRequest request)
     {
@@ -32,6 +35,7 @@ public class ScreensController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.ScreenId }, created);
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateScreenRequest request)
     {
@@ -39,6 +43,7 @@ public class ScreensController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = UserRoles.Admin)]
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {

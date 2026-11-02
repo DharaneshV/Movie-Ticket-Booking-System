@@ -1,10 +1,16 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace MovieTicketBooking.Core.DTOs.Bookings;
 
 public class CreateBookingRequest
 {
-    public string CustomerName { get; set; } = string.Empty;
-    public string CustomerEmail { get; set; } = string.Empty;
+    [Required]
+    [MaxLength(15)]
     public string CustomerPhone { get; set; } = string.Empty;
+
+    [Required]
     public int ShowId { get; set; }
+
+    [Required]
     public List<int> SeatIds { get; set; } = new();
 }
