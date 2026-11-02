@@ -4,48 +4,41 @@ using MovieTicketBooking.Core.Services.Interfaces;
 using MovieTicketBooking.Application.Services;
 using MovieTicketBooking.Infrastructure.Data;
 using MovieTicketBooking.Infrastructure.Repositories;
-
+using MovieTicketBooking.Api.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddOpenApi();
 
-// Register DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Repositories and Services
 builder.Services.AddScoped<IMovieRepository, MovieRepository>();
 builder.Services.AddScoped<IMovieService, MovieService>();
 builder.Services.AddScoped<IShowRepository, ShowRepository>();
 builder.Services.AddScoped<IShowService, ShowService>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ITheatreRepository, TheatreRepository>();
 builder.Services.AddScoped<ITheatreService, TheatreService>();
+builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
+builder.Services.AddScoped<IScreenService, ScreenService>();
+builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<ISeatRepository, SeatRepository>();
+builder.Services.AddScoped<ISeatService, SeatService>();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
-builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
-builder.Services.AddScoped<IScreenService, ScreenService>();
-
-builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-builder.Services.AddScoped<IBookingService, BookingService>();
-
-builder.Services.AddScoped<ISeatRepository, SeatRepository>();
-builder.Services.AddScoped<ISeatService, SeatService>();
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();
-app.UseAuthorization();
 app.UseExceptionHandler();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

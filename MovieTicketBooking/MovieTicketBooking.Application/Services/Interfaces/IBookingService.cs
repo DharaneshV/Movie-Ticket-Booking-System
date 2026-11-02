@@ -1,4 +1,4 @@
-IBookingService.csusing MovieTicketBooking.Core.DTOs.Bookings;
+using MovieTicketBooking.Core.DTOs.Bookings;
 
 namespace MovieTicketBooking.Core.Services.Interfaces;
 
