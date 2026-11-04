@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using MovieTicketBooking.Api.Middleware;
+using MovieTicketBooking.Application.Authorization;
 using MovieTicketBooking.Application.Interfaces;
 using MovieTicketBooking.Application.Services;
 using MovieTicketBooking.Core.Constants;
@@ -41,6 +43,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// Register Resource-Based Authorization Handlers
+builder.Services.AddScoped<IAuthorizationHandler, BookingAuthorizationHandler>();
 
 // Configure JWT Authentication
 builder.Services

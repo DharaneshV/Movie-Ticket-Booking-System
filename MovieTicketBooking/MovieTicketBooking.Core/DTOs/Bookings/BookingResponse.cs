@@ -4,6 +4,7 @@ public class BookingResponse
 {
     public int BookingId { get; set; }
     public string BookingReference { get; set; } = string.Empty;
+    public int UserId { get; set; }
     public int ShowId { get; set; }
     public string MovieTitle { get; set; } = string.Empty;
     public string TheatreName { get; set; } = string.Empty;

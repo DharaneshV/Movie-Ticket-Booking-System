@@ -22,11 +22,10 @@ public class BookingService : IBookingService
         return bookings.Select(MapToBookingResponse);
     }
 
-    public async Task<BookingResponse?> GetBookingByIdAsync(int id, int? userId = null)
+    public async Task<BookingResponse?> GetBookingByIdAsync(int id)
     {
         var booking = await _bookingRepository.GetByIdAsync(id);
         if (booking == null) return null;
-        if (userId.HasValue && booking.UserId != userId.Value) return null;
         return MapToBookingResponse(booking);
     }
 
@@ -94,11 +93,10 @@ public class BookingService : IBookingService
         return MapToBookingResponse(fullBooking!);
     }
 
-    public async Task<(bool Success, string? Error)> CancelBookingAsync(int id, int? userId = null)
+    public async Task<(bool Success, string? Error)> CancelBookingAsync(int id)
     {
         var booking = await _bookingRepository.GetByIdAsync(id);
         if (booking == null) return (false, "Booking not found.");
-        if (userId.HasValue && booking.UserId != userId.Value) return (false, "You cannot cancel another customer's booking.");
         if (booking.Status == "Cancelled") return (false, "Booking is already cancelled.");
 
         var showSeatsToRelease = new List<ShowSeat>();
@@ -116,6 +114,7 @@ public class BookingService : IBookingService
     {
         BookingId = b.BookingId,
         BookingReference = b.BookingReference,
+        UserId = b.UserId,
         ShowId = b.ShowId,
         MovieTitle = b.Show?.Movie?.Title ?? string.Empty,
         TheatreName = b.Show?.Screen?.Theatre?.Name ?? string.Empty,

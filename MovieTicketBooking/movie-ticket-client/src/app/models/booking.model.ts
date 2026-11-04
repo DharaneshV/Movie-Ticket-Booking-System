@@ -1,6 +1,7 @@
 export interface Booking {
   bookingId: number;
   bookingReference: string;
+  userId?: number;
   showId: number;
   movieTitle: string;
   theatreName: string;
@@ -19,4 +20,3 @@ export interface CreateBookingRequest {
   customerPhone: string;
   seatIds: number[];
 }
-
