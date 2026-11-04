@@ -1,0 +1,94 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">📋 My Movie Bookings</h2>
+      <p class="text-muted mb-0">View your ticket reservations, showtimes, and booking history.</p>
+    </div>
+    <a [routerLink]="['/movies']" class="btn btn-warning fw-semibold">
+      + Book Another Movie
+    </a>
+  </div>
+
+  <div *ngIf="actionMessage" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+    ✅ {{ actionMessage }}
+    <button type="button" class="btn-close" (click)="actionMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="text-muted mt-2">Loading your booking history...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger shadow-sm">
+    {{ errorMessage }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadMyBookings()">Retry</button>
+  </div>
+
+  <!-- Bookings List -->
+  <div *ngIf="!isLoading && bookings.length > 0" class="row row-cols-1 row-cols-md-2 g-4">
+    <div class="col" *ngFor="let b of bookings">
+      <div class="card h-100 shadow-sm border-0 booking-card overflow-hidden">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center py-3">
+          <div>
+            <span class="badge bg-secondary me-2">#{{ b.bookingReference }}</span>
+            <span class="fw-semibold">{{ b.bookingDate | date:'mediumDate' }}</span>
+          </div>
+          <span
+            class="badge fs-6"
+            [ngClass]="b.status === 'Confirmed' ? 'bg-success' : 'bg-danger'"
+          >
+            {{ b.status }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <h4 class="card-title fw-bold text-dark mb-2">🎬 {{ b.movieTitle }}</h4>
+
+          <div class="mb-3 text-secondary small">
+            <div>📍 <strong>Theatre:</strong> {{ b.theatreName || 'Main Theatre' }}</div>
+            <div>📽️ <strong>Screen:</strong> {{ b.screenName || 'Screen ' + b.showId }}</div>
+            <div>📞 <strong>Contact:</strong> {{ b.customerPhone }} &bull; {{ b.customerEmail }}</div>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-muted small">Reserved Seats:</span>
+              <div>
+                <span *ngFor="let seat of b.seats" class="badge bg-primary me-1 fs-6">
+                  {{ seat }}
+                </span>
+              </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+              <span class="fw-bold text-dark">Total Amount:</span>
+              <span class="fw-bold text-success fs-5">₹{{ b.totalAmount }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="b.status === 'Confirmed'" class="text-end">
+            <button
+              class="btn btn-outline-danger btn-sm"
+              [disabled]="cancellingId === b.bookingId"
+              (click)="onCancelBooking(b)"
+            >
+              {{ cancellingId === b.bookingId ? 'Cancelling...' : 'Cancel Booking' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && bookings.length === 0" class="card shadow-sm border-0 text-center py-5 my-4">
+    <div style="font-size: 4rem;">🎟️</div>
+    <h4 class="fw-bold mt-2">No bookings found yet</h4>
+    <p class="text-muted">You haven't reserved any movie tickets yet. Start browsing now!</p>
+    <div class="mt-2">
+      <a [routerLink]="['/movies']" class="btn btn-warning fw-semibold px-4">
+        Explore Movies
+      </a>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,91 @@
+<div class="hero-section text-white text-center py-5 mb-4 shadow">
+  <div class="container">
+    <h1 class="display-4 fw-bold mb-2">🎬 Now Showing in Theatres</h1>
+    <p class="lead text-light mb-4">Book your favourite movies, pick the best seats, and enjoy the show!</p>
+
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="input-group input-group-lg shadow-sm">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search by movie title or language..."
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearch()"
+          />
+          <button class="btn btn-warning fw-semibold px-4" (click)="onSearch()">
+            🔍 Search
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container pb-5">
+  <!-- Genre Filters -->
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+    <span class="fw-semibold text-secondary me-2">Genre:</span>
+    <button
+      *ngFor="let g of genres"
+      class="btn btn-sm"
+      [ngClass]="selectedGenre === g ? 'btn-primary' : 'btn-outline-secondary'"
+      (click)="onSelectGenre(g)"
+    >
+      {{ g }}
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3 text-muted">Fetching latest movies...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger shadow-sm">
+    {{ errorMessage }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadMovies()">Retry</button>
+  </div>
+
+  <!-- Movies Grid -->
+  <div *ngIf="!isLoading && filteredMovies.length > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="col" *ngFor="let movie of filteredMovies">
+      <div class="card h-100 shadow-sm movie-card border-0 overflow-hidden">
+        <div class="poster-placeholder text-center py-5 position-relative">
+          <div class="movie-icon">🍿</div>
+          <span class="badge bg-warning text-dark position-absolute top-0 end-0 m-3 fw-bold">
+            {{ movie.language }}
+          </span>
+          <span class="badge bg-dark text-light position-absolute top-0 start-0 m-3">
+            {{ movie.genre }}
+          </span>
+        </div>
+
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title fw-bold text-dark mb-1">{{ movie.title }}</h5>
+          <p class="text-muted small mb-2">⏱️ {{ movie.durationMinutes }} mins &bull; 📅 {{ movie.releaseDate | date:'mediumDate' }}</p>
+          <p class="card-text text-secondary flex-grow-1">
+            {{ movie.description || 'Experience this thrilling movie on the big screen with premium sound and comfort.' }}
+          </p>
+
+          <a [routerLink]="['/movies', movie.movieId]" class="btn btn-primary w-100 mt-3 fw-semibold">
+            🎟️ View Shows & Book
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredMovies.length === 0" class="text-center py-5 text-muted">
+    <h4>No movies found matching your criteria.</h4>
+    <p>Try searching for a different keyword or resetting filters.</p>
+    <button class="btn btn-outline-primary mt-2" (click)="searchQuery = ''; selectedGenre = 'All'; filterMovies()">
+      Reset Filters
+    </button>
+  </div>
+</div>
+

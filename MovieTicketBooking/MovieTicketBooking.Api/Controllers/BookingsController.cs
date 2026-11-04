@@ -23,6 +23,18 @@ public class BookingsController(IBookingService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingResponse>>> GetAll() => Ok(await service.GetAllBookingsAsync());
 
+    // Customer can view own bookings list. Admin can view all.
+    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
+    [HttpGet("my")]
+    public async Task<ActionResult<IEnumerable<BookingResponse>>> GetMyBookings()
+    {
+        var userId = GetCurrentUserId();
+        if (userId is null) return Unauthorized();
+
+        var bookings = await service.GetBookingsByUserIdAsync(userId.Value);
+        return Ok(bookings);
+    }
+
     // Customer can view own booking. Admin can view any booking.
     [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
     [HttpGet("{id:int}")]

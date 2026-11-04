@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MovieTicketBooking/MovieTicketBooking.Api/MovieTicketBooking.Api.csproj" />
+  <Project Path="MovieTicketBooking/MovieTicketBooking.Application/MovieTicketBooking.Application.csproj" />
+  <Project Path="MovieTicketBooking/MovieTicketBooking.Core/MovieTicketBooking.Core.csproj" />
+  <Project Path="MovieTicketBooking/MovieTicketBooking.Infrastructure/MovieTicketBooking.Infrastructure.csproj" />
+</Solution>

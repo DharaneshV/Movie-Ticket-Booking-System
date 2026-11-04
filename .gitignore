@@ -1,0 +1,28 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build outputs
+**/[Bb]in/
+**/[Oo]bj/
+dist/
+tmp/
+out-tsc/
+bazel-out/
+
+# Node & Angular
+node_modules/
+npm-debug.log
+yarn-error.log
+.angular/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# OS Files
+.DS_Store
+Thumbs.db

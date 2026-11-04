@@ -1,0 +1,26 @@
+.hero-section {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-bottom: 3px solid #ffc107;
+}
+
+.movie-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 12px;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.poster-placeholder {
+  background: linear-gradient(45deg, #2b3a4a, #3b4b5e);
+  color: #fff;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.movie-icon {
+  font-size: 4rem;
+}
+

@@ -1,0 +1,185 @@
+<div class="container py-4">
+  <!-- Back Button -->
+  <div class="mb-3">
+    <a [routerLink]="['/shows']" class="btn btn-outline-secondary btn-sm">
+      &larr; Back to Shows
+    </a>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="text-muted mt-2">Loading seating layout...</p>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger shadow-sm">
+    {{ errorMessage }}
+    <button class="btn btn-sm btn-outline-danger ms-3" (click)="loadShowAndSeats()">Retry</button>
+  </div>
+
+  <!-- Booking Confirmation Modal / Screen -->
+  <div *ngIf="confirmedBooking" class="card shadow border-0 p-4 mx-auto my-4 text-center" style="max-width: 600px;">
+    <div class="text-success mb-3" style="font-size: 4rem;">🎉</div>
+    <h2 class="fw-bold text-success mb-2">Booking Confirmed!</h2>
+    <p class="text-muted">Your movie tickets have been reserved successfully.</p>
+
+    <div class="card bg-light border-0 p-3 text-start my-3">
+      <div class="row g-2">
+        <div class="col-6"><strong>Reference:</strong> <span class="badge bg-dark">{{ confirmedBooking.bookingReference }}</span></div>
+        <div class="col-6"><strong>Status:</strong> <span class="badge bg-success">{{ confirmedBooking.status }}</span></div>
+        <div class="col-12"><strong>Movie:</strong> {{ confirmedBooking.movieTitle }}</div>
+        <div class="col-6"><strong>Theatre:</strong> {{ confirmedBooking.theatreName }}</div>
+        <div class="col-6"><strong>Screen:</strong> {{ confirmedBooking.screenName }}</div>
+        <div class="col-12"><strong>Booked Seats:</strong>
+          <span *ngFor="let s of confirmedBooking.seats" class="badge bg-primary me-1">{{ s }}</span>
+        </div>
+        <div class="col-6"><strong>Total Paid:</strong> ₹{{ confirmedBooking.totalAmount }}</div>
+        <div class="col-6"><strong>Date:</strong> {{ confirmedBooking.bookingDate | date:'medium' }}</div>
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 justify-content-center mt-3">
+      <a [routerLink]="['/my-bookings']" class="btn btn-primary fw-semibold px-4">
+        📋 View My Bookings
+      </a>
+      <a [routerLink]="['/movies']" class="btn btn-outline-secondary">
+        Browse More Movies
+      </a>
+    </div>
+  </div>
+
+  <!-- Normal Seat Selection Layout -->
+  <div *ngIf="!isLoading && show && !confirmedBooking" class="row g-4">
+    <!-- Left Column: Screen & Seats Grid -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 p-4">
+        <!-- Show Title & Screen Details -->
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4 flex-wrap gap-2">
+          <div>
+            <h4 class="fw-bold mb-1">🎬 {{ show.movieTitle }}</h4>
+            <span class="text-muted small">
+              📍 {{ show.screenName || 'Screen ' + show.screenId }} &bull;
+              📅 {{ show.startTime | date:'EEE, MMM d' }} &bull;
+              ⏰ {{ show.startTime | date:'shortTime' }}
+            </span>
+          </div>
+          <span class="badge bg-warning text-dark fs-6 px-3 py-2">
+            ₹{{ show.ticketPrice }} / seat
+          </span>
+        </div>
+
+        <!-- Cinema Screen Curve Indicator -->
+        <div class="cinema-screen-container mb-5 text-center">
+          <div class="cinema-screen"></div>
+          <small class="text-muted text-uppercase tracking-wider">All eyes this way (Screen)</small>
+        </div>
+
+        <!-- Interactive Seat Matrix -->
+        <div class="seat-matrix-container overflow-auto py-2">
+          <div *ngFor="let row of seatRows" class="seat-row d-flex align-items-center justify-content-center mb-2">
+            <span class="row-label fw-bold text-muted me-3">{{ row }}</span>
+            <div class="d-flex gap-2">
+              <button
+                *ngFor="let seat of groupedSeats[row]"
+                type="button"
+                class="seat-btn btn btn-sm"
+                [ngClass]="{
+                  'btn-secondary text-muted': seat.status === 'Booked',
+                  'btn-primary active-seat': isSeatSelected(seat.seatId),
+                  'btn-outline-success': seat.status !== 'Booked' && !isSeatSelected(seat.seatId)
+                }"
+                [disabled]="seat.status === 'Booked'"
+                [title]="seat.seatLabel + ' - ₹' + (seat.price || show.ticketPrice) + ' (' + seat.status + ')'"
+                (click)="toggleSeat(seat)"
+              >
+                {{ seat.seatNumber }}
+              </button>
+            </div>
+            <span class="row-label fw-bold text-muted ms-3">{{ row }}</span>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="d-flex justify-content-center gap-4 mt-4 pt-3 border-top small text-muted flex-wrap">
+          <div class="d-flex align-items-center gap-1">
+            <span class="legend-box btn-outline-success"></span> Available
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <span class="legend-box btn-primary"></span> Selected
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <span class="legend-box btn-secondary"></span> Booked / Sold
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Booking Summary & Checkout Card -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 p-4 sticky-top" style="top: 80px;">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">🎟️ Booking Summary</h5>
+
+        <div class="mb-3">
+          <label class="form-label text-muted small mb-1">Selected Seats</label>
+          <div *ngIf="selectedSeatIds.size === 0" class="text-muted fst-italic small">
+            No seats selected yet. Click seats on the map.
+          </div>
+          <div *ngIf="selectedSeatIds.size > 0" class="d-flex flex-wrap gap-1">
+            <span *ngFor="let s of getSelectedSeats()" class="badge bg-primary fs-6">
+              {{ s.seatLabel }}
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2 small text-secondary">
+          <span>Tickets:</span>
+          <strong>{{ selectedSeatIds.size }} seat(s)</strong>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3 text-secondary">
+          <span>Price per Ticket:</span>
+          <span>₹{{ show.ticketPrice }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between py-2 border-top border-bottom mb-3 fs-5 fw-bold text-dark">
+          <span>Total Amount:</span>
+          <span class="text-success">₹{{ getTotalPrice() }}</span>
+        </div>
+
+        <!-- Phone Number Input -->
+        <div class="mb-3">
+          <label for="phone" class="form-label small fw-semibold">Contact Phone Number <span class="text-danger">*</span></label>
+          <input
+            type="tel"
+            id="phone"
+            class="form-control"
+            placeholder="e.g. 9876543210"
+            [(ngModel)]="customerPhone"
+            required
+          />
+          <div class="form-text small">Required for SMS ticket confirmation.</div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-danger small py-2 mb-3">
+          {{ errorMessage }}
+        </div>
+
+        <button
+          class="btn btn-warning w-100 fw-bold py-2 btn-lg"
+          [disabled]="selectedSeatIds.size === 0 || !customerPhone.trim() || isSubmitting"
+          (click)="onConfirmBooking()"
+        >
+          {{ isSubmitting ? 'Processing...' : '💳 Pay & Confirm Booking' }}
+        </button>
+
+        <button
+          *ngIf="selectedSeatIds.size > 0"
+          class="btn btn-link btn-sm text-secondary w-100 mt-2 text-decoration-none"
+          (click)="selectedSeatIds.clear()"
+        >
+          Clear Selection
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

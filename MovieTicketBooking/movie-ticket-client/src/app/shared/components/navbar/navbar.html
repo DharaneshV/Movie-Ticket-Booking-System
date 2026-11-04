@@ -1,21 +1,54 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 shadow-sm">
-  <a class="navbar-brand fw-bold" routerLink="/">🎬 MovieBooking</a>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4 shadow-sm sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold text-warning" [routerLink]="['/']">
+        🎬 CinemaPass
+      </a>
 
-  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-    <span class="navbar-toggler-icon"></span>
-  </button>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-  <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-    <ul class="navbar-nav align-items-center">
-      <li class="nav-item" *ngIf="!isLoggedIn">
-        <a class="nav-link" routerLink="/login" routerLinkActive="active">Login</a>
-      </li>
-      <li class="nav-item" *ngIf="!isLoggedIn">
-        <a class="btn btn-outline-light ms-2" routerLink="/register">Register</a>
-      </li>
-      <li class="nav-item" *ngIf="isLoggedIn">
-        <button class="btn btn-outline-danger btn-sm ms-2" (click)="onLogout()">Logout</button>
-      </li>
-    </ul>
-  </div>
-</nav>
+        <div class="collapse navbar-collapse justify-content-between" id="navbarNav">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" [routerLink]="['/movies']" routerLinkActive="active">Movies</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" [routerLink]="['/shows']" routerLinkActive="active">Shows</a>
+            </li>
+            <li class="nav-item" *ngIf="isLoggedIn">
+              <a class="nav-link" [routerLink]="['/my-bookings']" routerLinkActive="active">My Bookings</a>
+            </li>
+            <li class="nav-item" *ngIf="isAdmin">
+              <a class="nav-link text-warning fw-semibold" [routerLink]="['/admin']" routerLinkActive="active">
+                ⚙️ Admin Panel
+              </a>
+            </li>
+          </ul>
+
+          <ul class="navbar-nav align-items-center">
+            <ng-container *ngIf="!isLoggedIn">
+              <li class="nav-item">
+                <a class="nav-link" [routerLink]="['/login']" routerLinkActive="active">Login</a>
+              </li>
+              <li class="nav-item ms-lg-2 mt-2 mt-lg-0">
+                <a class="btn btn-warning btn-sm px-3 fw-semibold" [routerLink]="['/register']">Register</a>
+              </li>
+            </ng-container>
+
+            <ng-container *ngIf="isLoggedIn">
+              <li class="nav-item me-3 text-light d-flex align-items-center">
+                <span class="me-2">👋 {{ user?.fullName }}</span>
+                <span class="badge" [ngClass]="isAdmin ? 'bg-danger' : 'bg-primary'">
+                  {{ user?.role }}
+                </span>
+              </li>
+              <li class="nav-item mt-2 mt-lg-0">
+                <button class="btn btn-outline-danger btn-sm" (click)="onLogout()">Logout</button>
+              </li>
+            </ng-container>
+          </ul>
+        </div>
+      </div>
+  </nav>

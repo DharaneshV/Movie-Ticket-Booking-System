@@ -1,0 +1,463 @@
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">⚙️ Admin Management Portal</h2>
+      <p class="text-muted mb-0">Manage movies, theatres, screens, shows, and all reservations.</p>
+    </div>
+    <span class="badge bg-danger fs-6 px-3 py-2">Administrator Access</span>
+  </div>
+
+  <!-- Alert Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+    ✅ {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+    ❌ {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''" aria-label="Close"></button>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-pills nav-fill mb-4 bg-light p-2 rounded-3 shadow-sm">
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold"
+        [class.active]="activeTab === 'movies'"
+        (click)="activeTab = 'movies'"
+      >
+        🎬 Movies ({{ movies.length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold"
+        [class.active]="activeTab === 'theatres'"
+        (click)="activeTab = 'theatres'"
+      >
+        🏢 Theatres & Screens ({{ theatres.length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold"
+        [class.active]="activeTab === 'shows'"
+        (click)="activeTab = 'shows'"
+      >
+        🕒 Shows ({{ shows.length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link fw-semibold"
+        [class.active]="activeTab === 'bookings'"
+        (click)="activeTab = 'bookings'"
+      >
+        🎟️ All Bookings ({{ bookings.length }})
+      </button>
+    </li>
+  </ul>
+
+  <!-- TAB 1: MOVIES -->
+  <div *ngIf="activeTab === 'movies'">
+    <div class="row g-4">
+      <!-- Create Movie Form -->
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">➕ Add New Movie</h5>
+          <form (ngSubmit)="onCreateMovie()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Movie Title</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newMovie.title"
+                name="title"
+                placeholder="e.g. Leo"
+                required
+              />
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Genre</label>
+                <select class="form-select" [(ngModel)]="newMovie.genre" name="genre">
+                  <option value="Action">Action</option>
+                  <option value="Drama">Drama</option>
+                  <option value="Comedy">Comedy</option>
+                  <option value="Sci-Fi">Sci-Fi</option>
+                  <option value="Thriller">Thriller</option>
+                  <option value="Horror">Horror</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Language</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  [(ngModel)]="newMovie.language"
+                  name="language"
+                  placeholder="e.g. Tamil"
+                />
+              </div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Duration (Mins)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  [(ngModel)]="newMovie.durationMinutes"
+                  name="duration"
+                  min="30"
+                  max="300"
+                />
+              </div>
+              <div class="col-6">
+                <label class="form-label small fw-semibold">Release Date</label>
+                <input
+                  type="date"
+                  class="form-control"
+                  [(ngModel)]="newMovie.releaseDate"
+                  name="releaseDate"
+                />
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Description</label>
+              <textarea
+                class="form-control"
+                rows="3"
+                [(ngModel)]="newMovie.description"
+                name="description"
+                placeholder="Plot synopsis..."
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+              Save Movie
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Movies List Table -->
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">Existing Movies</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Genre</th>
+                  <th>Language</th>
+                  <th>Duration</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let m of movies">
+                  <td><strong>#{{ m.movieId }}</strong></td>
+                  <td class="fw-semibold">{{ m.title }}</td>
+                  <td><span class="badge bg-secondary">{{ m.genre }}</span></td>
+                  <td>{{ m.language }}</td>
+                  <td>{{ m.durationMinutes }}m</td>
+                  <td class="text-end">
+                    <button class="btn btn-outline-danger btn-sm" (click)="onDeleteMovie(m)">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="movies.length === 0">
+                  <td colspan="6" class="text-center text-muted py-4">No movies in the catalog yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: THEATRES & SCREENS -->
+  <div *ngIf="activeTab === 'theatres'">
+    <div class="row g-4">
+      <!-- Add Theatre -->
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">➕ Add Theatre</h5>
+          <form (ngSubmit)="onCreateTheatre()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Theatre Name</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newTheatre.name"
+                name="tName"
+                placeholder="e.g. PVR Cinemas"
+                required
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Location / City</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newTheatre.location"
+                name="tLoc"
+                placeholder="e.g. Downtown Mall, Chennai"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">Create Theatre</button>
+          </form>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">Theatres List</h5>
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let t of theatres" class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-0 fw-bold">{{ t.name }}</h6>
+                <small class="text-muted">📍 {{ t.location }}</small>
+              </div>
+              <span class="badge bg-primary">ID: {{ t.theatreId }}</span>
+            </li>
+            <li *ngIf="theatres.length === 0" class="list-group-item text-muted text-center py-3">
+              No theatres added yet.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Add Screen -->
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 p-4 mb-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">➕ Add Screen to Theatre</h5>
+          <form (ngSubmit)="onCreateScreen()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Select Theatre</label>
+              <select class="form-select" [(ngModel)]="newScreen.theatreId" name="theatreId" required>
+                <option [ngValue]="0" disabled>-- Choose Theatre --</option>
+                <option *ngFor="let t of theatres" [ngValue]="t.theatreId">
+                  {{ t.name }} ({{ t.location }})
+                </option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Screen Name</label>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="newScreen.screenName"
+                name="sName"
+                placeholder="e.g. Screen 1 - IMAX"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">Add Screen</button>
+          </form>
+        </div>
+
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">Screens List</h5>
+          <ul class="list-group list-group-flush">
+            <li *ngFor="let s of screens" class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-0 fw-bold">{{ s.screenName }}</h6>
+                <small class="text-muted">🏢 {{ s.theatreName || 'Theatre #' + s.theatreId }}</small>
+              </div>
+              <span class="badge bg-secondary">Screen ID: {{ s.screenId }}</span>
+            </li>
+            <li *ngIf="screens.length === 0" class="list-group-item text-muted text-center py-3">
+              No screens configured yet.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: SHOWS -->
+  <div *ngIf="activeTab === 'shows'">
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">➕ Schedule Show</h5>
+          <form (ngSubmit)="onCreateShow()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Select Movie</label>
+              <select class="form-select" [(ngModel)]="newShow.movieId" name="sMovie" required>
+                <option [ngValue]="0" disabled>-- Choose Movie --</option>
+                <option *ngFor="let m of movies" [ngValue]="m.movieId">
+                  {{ m.title }} ({{ m.language }})
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Select Screen</label>
+              <select class="form-select" [(ngModel)]="newShow.screenId" name="sScreen" required>
+                <option [ngValue]="0" disabled>-- Choose Screen --</option>
+                <option *ngFor="let sc of screens" [ngValue]="sc.screenId">
+                  {{ sc.screenName }} ({{ sc.theatreName }})
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Start Time</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                [(ngModel)]="newShow.startTime"
+                name="startTime"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">End Time</label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                [(ngModel)]="newShow.endTime"
+                name="endTime"
+                required
+              />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Ticket Price (₹)</label>
+              <input
+                type="number"
+                class="form-control"
+                [(ngModel)]="newShow.ticketPrice"
+                name="ticketPrice"
+                min="50"
+                step="10"
+                required
+              />
+            </div>
+
+            <button type="submit" class="btn btn-warning w-100 fw-bold">
+              Schedule Show
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <div class="card shadow-sm border-0 p-4">
+          <h5 class="fw-bold mb-3 border-bottom pb-2">Scheduled Shows</h5>
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Movie</th>
+                  <th>Screen</th>
+                  <th>Timing</th>
+                  <th>Price</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let s of shows">
+                  <td><strong>#{{ s.showId }}</strong></td>
+                  <td class="fw-semibold">{{ s.movieTitle }}</td>
+                  <td>{{ s.screenName || 'Screen ' + s.screenId }}</td>
+                  <td class="small">
+                    <div>📅 {{ s.startTime | date:'shortDate' }}</div>
+                    <div>⏰ {{ s.startTime | date:'shortTime' }} &ndash; {{ s.endTime | date:'shortTime' }}</div>
+                  </td>
+                  <td><span class="badge bg-success">₹{{ s.ticketPrice }}</span></td>
+                  <td class="text-end">
+                    <button class="btn btn-outline-danger btn-sm" (click)="onDeleteShow(s)">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="shows.length === 0">
+                  <td colspan="6" class="text-center text-muted py-4">No shows currently scheduled.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: ALL BOOKINGS -->
+  <div *ngIf="activeTab === 'bookings'">
+    <div class="card shadow-sm border-0 p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0">System Reservations</h5>
+        <span class="text-muted small">Total Bookings: {{ bookings.length }}</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Reference</th>
+              <th>Customer</th>
+              <th>Movie</th>
+              <th>Seats</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let b of bookings">
+              <td>
+                <span class="badge bg-dark">#{{ b.bookingReference }}</span>
+                <div class="text-muted small">{{ b.bookingDate | date:'short' }}</div>
+              </td>
+              <td>
+                <div class="fw-semibold">{{ b.customerName }}</div>
+                <div class="text-muted small">✉️ {{ b.customerEmail }}</div>
+                <div class="text-muted small">📞 {{ b.customerPhone }}</div>
+              </td>
+              <td>
+                <div class="fw-bold">{{ b.movieTitle }}</div>
+                <div class="text-muted small">{{ b.theatreName }} &bull; {{ b.screenName }}</div>
+              </td>
+              <td>
+                <span *ngFor="let s of b.seats" class="badge bg-primary me-1">{{ s }}</span>
+              </td>
+              <td class="fw-bold text-success">₹{{ b.totalAmount }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [ngClass]="b.status === 'Confirmed' ? 'bg-success' : 'bg-danger'"
+                >
+                  {{ b.status }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button
+                  *ngIf="b.status === 'Confirmed'"
+                  class="btn btn-outline-danger btn-sm"
+                  (click)="onCancelBookingAdmin(b)"
+                >
+                  Cancel
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="bookings.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No reservations in the system yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -36,6 +36,12 @@ public class BookingService : IBookingService
         return bookings.Select(MapToBookingResponse);
     }
 
+    public async Task<IEnumerable<BookingResponse>> GetBookingsByUserIdAsync(int userId)
+    {
+        var bookings = await _bookingRepository.GetByUserIdAsync(userId);
+        return bookings.Select(MapToBookingResponse);
+    }
+
     public async Task<BookingResponse> CreateBookingAsync(CreateBookingRequest request, int userId, string customerName, string customerEmail)
     {
         var show = await _showRepository.GetByIdAsync(request.ShowId);
@@ -83,10 +89,6 @@ public class BookingService : IBookingService
         };
 
         var createdBooking = await _bookingRepository.CreateBookingAsync(booking, bookingSeats, showSeatsToUpdate);
-
-        // Update booking reference with actual ID for cleaner formatting
-        createdBooking.BookingReference = $"MOV{createdBooking.BookingId}";
-        await _bookingRepository.CancelBookingAsync(createdBooking, Enumerable.Empty<ShowSeat>());
 
         var fullBooking = await _bookingRepository.GetByIdAsync(createdBooking.BookingId);
         return MapToBookingResponse(fullBooking!);

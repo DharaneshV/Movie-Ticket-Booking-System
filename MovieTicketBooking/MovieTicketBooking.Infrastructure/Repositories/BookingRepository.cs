@@ -15,6 +15,7 @@ public class BookingRepository : IBookingRepository
             .Include(b => b.Show).ThenInclude(s => s.Movie)
             .Include(b => b.Show).ThenInclude(s => s.Screen).ThenInclude(sc => sc.Theatre)
             .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)
+            .OrderByDescending(b => b.BookingDate)
             .ToListAsync();
 
     public async Task<Booking?> GetByIdAsync(int id) =>
@@ -35,6 +36,15 @@ public class BookingRepository : IBookingRepository
             .Where(b => b.ShowId == showId)
             .ToListAsync();
 
+    public async Task<IEnumerable<Booking>> GetByUserIdAsync(int userId) =>
+        await _context.Bookings
+            .Include(b => b.Show).ThenInclude(s => s.Movie)
+            .Include(b => b.Show).ThenInclude(s => s.Screen).ThenInclude(sc => sc.Theatre)
+            .Include(b => b.BookingSeats).ThenInclude(bs => bs.Seat)
+            .Where(b => b.UserId == userId)
+            .OrderByDescending(b => b.BookingDate)
+            .ToListAsync();
+
     public async Task<Booking> CreateBookingAsync(Booking booking, IEnumerable<BookingSeat> bookingSeats, IEnumerable<ShowSeat> showSeatsToUpdate)
     {
         var strategy = _context.Database.CreateExecutionStrategy();
@@ -45,6 +55,8 @@ public class BookingRepository : IBookingRepository
             {
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
+
+                booking.BookingReference = $"MOV{booking.BookingId}";
 
                 foreach (var bs in bookingSeats)
                 {

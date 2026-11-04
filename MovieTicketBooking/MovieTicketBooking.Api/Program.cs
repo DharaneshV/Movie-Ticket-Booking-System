@@ -98,10 +98,6 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
     app.MapScalarApiReference();
 }
-else
-{
-    app.UseHttpsRedirection();
-}
 
 app.UseCors("AllowAngularClient");
 app.UseExceptionHandler();

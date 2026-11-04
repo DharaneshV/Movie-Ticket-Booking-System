@@ -1,0 +1,76 @@
+<div class="container py-4">
+  <!-- Back Button -->
+  <div class="mb-3">
+    <a [routerLink]="['/movies']" class="btn btn-outline-secondary btn-sm">
+      &larr; Back to Movies
+    </a>
+  </div>
+
+  <div *ngIf="isLoadingMovie" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <div *ngIf="errorMessage && !isLoadingMovie" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="movie && !isLoadingMovie">
+    <!-- Movie Header Banner Card -->
+    <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+      <div class="row g-0">
+        <div class="col-md-3 bg-dark text-white text-center py-5 d-flex flex-column justify-content-center align-items-center">
+          <div style="font-size: 5rem;">🎬</div>
+          <span class="badge bg-warning text-dark mt-2 fw-bold px-3 py-2">{{ movie.language }}</span>
+        </div>
+        <div class="col-md-9 p-4 d-flex flex-column justify-content-center">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-primary px-3 py-2">{{ movie.genre }}</span>
+            <span class="text-muted small">⏱️ {{ movie.durationMinutes }} Minutes</span>
+            <span class="text-muted small">&bull; 📅 Released {{ movie.releaseDate | date:'mediumDate' }}</span>
+          </div>
+
+          <h2 class="fw-bold mb-3">{{ movie.title }}</h2>
+          <p class="text-secondary fs-6 mb-0">
+            {{ movie.description || 'No description available for this title.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Available Shows Section -->
+    <div class="mt-4">
+      <h3 class="fw-bold mb-3">🕒 Available Shows & Timings</h3>
+
+      <div *ngIf="isLoadingShows" class="text-center py-4">
+        <div class="spinner-border text-warning" role="status"></div>
+        <p class="text-muted mt-2">Checking available showtimes...</p>
+      </div>
+
+      <div *ngIf="!isLoadingShows && shows.length > 0" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+        <div class="col" *ngFor="let show of shows">
+          <div class="card h-100 shadow-sm border-1 border-light-subtle show-card p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h5 class="fw-bold text-dark mb-0">{{ show.screenName || 'Screen ' + show.screenId }}</h5>
+              <span class="badge bg-success fs-6">₹{{ show.ticketPrice }}</span>
+            </div>
+
+            <div class="text-muted small mb-3">
+              <div>📅 <strong>Date:</strong> {{ show.startTime | date:'EEE, MMM d, y' }}</div>
+              <div>⏰ <strong>Time:</strong> {{ show.startTime | date:'shortTime' }} &ndash; {{ show.endTime | date:'shortTime' }}</div>
+            </div>
+
+            <a [routerLink]="['/book', show.showId]" class="btn btn-warning w-100 fw-bold mt-auto">
+              🪑 Select Seats
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!isLoadingShows && shows.length === 0" class="alert alert-info py-4 text-center">
+        <h5>No shows currently scheduled for this movie.</h5>
+        <p class="mb-0 text-muted">Please check back later or browse other movies.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
