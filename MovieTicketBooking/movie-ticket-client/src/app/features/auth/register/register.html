@@ -1,0 +1,37 @@
+<div class="container mt-5" style="max-width: 450px;">
+  <div class="card shadow p-4">
+    <h3 class="text-center mb-4">Create an Account</h3>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+    <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+
+    <form (ngSubmit)="onRegister()">
+      <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="fullName" [(ngModel)]="registerData.fullName" name="fullName"
+          placeholder="John Doe" required />
+        <label for="fullName">Full Name</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="email" class="form-control" id="email" [(ngModel)]="registerData.email" name="email"
+          placeholder="name@example.com" required />
+        <label for="email">Email address</label>
+      </div>
+
+      <div class="form-floating mb-3">
+        <input type="password" class="form-control" id="password" [(ngModel)]="registerData.password" name="password"
+          placeholder="Password" required />
+        <label for="password">Password</label>
+      </div>
+
+      <button type="submit" class="w-100 btn btn-primary btn-lg" [disabled]="isLoading">
+        {{ isLoading ? 'Registering...' : 'Register' }}
+      </button>
+
+      <div class="text-center mt-3">
+        <span class="text-muted">Already have an account? </span>
+        <a [routerLink]="'/login'">Sign In</a>
+      </div>
+    </form>
+  </div>
+</div>

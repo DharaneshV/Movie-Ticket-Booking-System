@@ -37,56 +37,64 @@ public class BookingRepository : IBookingRepository
 
     public async Task<Booking> CreateBookingAsync(Booking booking, IEnumerable<BookingSeat> bookingSeats, IEnumerable<ShowSeat> showSeatsToUpdate)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            foreach (var bs in bookingSeats)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                bs.BookingId = booking.BookingId;
-            }
-            _context.BookingSeats.AddRange(bookingSeats);
+                _context.Bookings.Add(booking);
+                await _context.SaveChangesAsync();
 
-            foreach (var ss in showSeatsToUpdate)
+                foreach (var bs in bookingSeats)
+                {
+                    bs.BookingId = booking.BookingId;
+                }
+                _context.BookingSeats.AddRange(bookingSeats);
+
+                foreach (var ss in showSeatsToUpdate)
+                {
+                    ss.Status = "Booked";
+                    _context.ShowSeats.Update(ss);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return booking;
+            }
+            catch
             {
-                ss.Status = "Booked";
-                _context.ShowSeats.Update(ss);
+                await transaction.RollbackAsync();
+                throw;
             }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return booking;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+        });
     }
 
     public async Task CancelBookingAsync(Booking booking, IEnumerable<ShowSeat> showSeatsToRelease)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            booking.Status = "Cancelled";
-            _context.Bookings.Update(booking);
-
-            foreach (var ss in showSeatsToRelease)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                ss.Status = "Available";
-                _context.ShowSeats.Update(ss);
-            }
+                booking.Status = "Cancelled";
+                _context.Bookings.Update(booking);
 
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                foreach (var ss in showSeatsToRelease)
+                {
+                    ss.Status = "Available";
+                    _context.ShowSeats.Update(ss);
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 }

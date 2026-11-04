@@ -12,6 +12,7 @@ using MovieTicketBooking.Core.Services.Interfaces;
 using MovieTicketBooking.Infrastructure.Data;
 using MovieTicketBooking.Infrastructure.Repositories;
 using MovieTicketBooking.Infrastructure.Services;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,15 +65,45 @@ builder.Services.AddAuthorization();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularClient", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+// Execute RoleSeeder on startup so admin/manager accounts are seeded properly
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var configuration = services.GetRequiredService<IConfiguration>();
+    try
+    {
+        await RoleSeeder.SeedAsync(services, configuration);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
-    await RoleSeeder.SeedAsync(app.Services, app.Configuration);
     app.MapOpenApi();
+    app.MapScalarApiReference();
+}
+else
+{
+    app.UseHttpsRedirection();
 }
 
-app.UseHttpsRedirection();
+app.UseCors("AllowAngularClient");
 app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -31,6 +31,8 @@ public class AuthController(IUserService _userService) : ControllerBase
 		return Ok(new
 		{
 			message = result.Message,
+			userId = result.UserId,
+			expiresAt = result.ExpiresAt,
 			token = result.Token
 		});
 	}

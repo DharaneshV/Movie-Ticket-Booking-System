@@ -30,27 +30,31 @@ public class ShowRepository : IShowRepository
 
     public async Task<Show> AddAsync(Show show, IEnumerable<ShowSeat> showSeats)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
+        var strategy = _context.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            _context.Shows.Add(show);
-            await _context.SaveChangesAsync();
-
-            foreach (var seat in showSeats)
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                seat.ShowId = show.ShowId;
-            }
-            _context.ShowSeats.AddRange(showSeats);
-            await _context.SaveChangesAsync();
+                _context.Shows.Add(show);
+                await _context.SaveChangesAsync();
 
-            await transaction.CommitAsync();
-            return show;
-        }
-        catch
-        {
-            await transaction.RollbackAsync();
-            throw;
-        }
+                foreach (var seat in showSeats)
+                {
+                    seat.ShowId = show.ShowId;
+                }
+                _context.ShowSeats.AddRange(showSeats);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return show;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        });
     }
 
     public async Task UpdateAsync(Show show)

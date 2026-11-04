@@ -34,24 +34,24 @@ public class UserService(
 		return (true, "Registration successful.");
 	}
 
-	public async Task<(bool Success, string Message, string? Token)> LoginAsync(LoginDto dto)
+	public async Task<(bool Success, string Message, string? Token, int? UserId, DateTime? ExpiresAt)> LoginAsync(LoginDto dto)
 	{
 		var email = dto.Email.Trim().ToLower();
 		var user = await repo.GetByEmailAsync(email);
 
 		if (user is null)
 		{
-			return (false, "Invalid email or password.", null);
+			return (false, "Invalid email or password.", null, null, null);
 		}
 
 		var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
 		if (result == PasswordVerificationResult.Failed)
 		{
-			return (false, "Invalid email or password.", null);
+			return (false, "Invalid email or password.", null, null, null);
 		}
 
-		var token = jwtService.GenerateToken(user);
-		return (true, "Login successful.", token);
+		var (token, expiresAt) = jwtService.GenerateToken(user);
+		return (true, "Login successful.", token, user.UserId, expiresAt);
 	}
 
 	public async Task CreateRoleUserAsync(

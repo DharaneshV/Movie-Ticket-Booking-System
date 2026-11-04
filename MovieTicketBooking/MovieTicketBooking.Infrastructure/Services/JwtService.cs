@@ -10,7 +10,7 @@ namespace MovieTicketBooking.Infrastructure.Services;
 
 public class JwtService(IConfiguration configuration) : IJwtService
 {
-    public string GenerateToken(User user)
+    public (string Token, DateTime ExpiresAt) GenerateToken(User user)
     {
         var jwt = configuration.GetSection("Jwt");
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!));
@@ -24,14 +24,17 @@ public class JwtService(IConfiguration configuration) : IJwtService
             new Claim(ClaimTypes.Role, user.Role)
         };
 
+        var expires = DateTime.UtcNow.AddMinutes(double.Parse(jwt["ExpiryMinutes"]!));
+
         var token = new JwtSecurityToken(
             issuer: jwt["Issuer"],
             audience: jwt["Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(double.Parse(jwt["ExpiryMinutes"]!)),
+            expires: expires,
             signingCredentials: credentials
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+        return (tokenString, expires);
     }
 }

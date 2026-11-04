@@ -1,8 +1,8 @@
-using MovieTicketBooking.Core.Models; // Adjust namespace to where your User model is located
+using MovieTicketBooking.Core.Models;
 
 namespace MovieTicketBooking.Application.Interfaces;
 
 public interface IJwtService
 {
-    string GenerateToken(User user);
+    (string Token, DateTime ExpiresAt) GenerateToken(User user);
 }
