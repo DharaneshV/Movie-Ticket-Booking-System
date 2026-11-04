@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -6,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using MovieTicketBooking.Api.Middleware;
 using MovieTicketBooking.Application.Interfaces;
 using MovieTicketBooking.Application.Services;
+using MovieTicketBooking.Core.Constants;
 using MovieTicketBooking.Core.Models;
 using MovieTicketBooking.Core.Repositories.Interfaces;
 using MovieTicketBooking.Core.Services.Interfaces;
@@ -57,11 +59,19 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwt["Key"]!)
             ),
+            RoleClaimType = ClaimTypes.Role,
+            NameClaimType = ClaimTypes.Name,
             ClockSkew = TimeSpan.Zero
         };
     });
 
-builder.Services.AddAuthorization();
+// Configure Customer and Admin Authorization Policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("CustomerOnly", policy => policy.RequireRole(UserRoles.Customer));
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole(UserRoles.Admin));
+    options.AddPolicy("CustomerOrAdmin", policy => policy.RequireRole(UserRoles.Customer, UserRoles.Admin));
+});
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 

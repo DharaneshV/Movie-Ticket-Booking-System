@@ -19,12 +19,12 @@ public class BookingsController(IBookingService service) : ControllerBase
     }
 
     // Admin can view all bookings
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookingResponse>>> GetAll() => Ok(await service.GetAllBookingsAsync());
 
     // Customer can view own bookings list. Admin can view all.
-    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
+    [Authorize(Policy = "CustomerOrAdmin")]
     [HttpGet("my")]
     public async Task<ActionResult<IEnumerable<BookingResponse>>> GetMyBookings()
     {
@@ -36,7 +36,7 @@ public class BookingsController(IBookingService service) : ControllerBase
     }
 
     // Customer can view own booking. Admin can view any booking.
-    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
+    [Authorize(Policy = "CustomerOrAdmin")]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BookingResponse>> GetById(int id)
     {
@@ -49,12 +49,12 @@ public class BookingsController(IBookingService service) : ControllerBase
     }
 
     // Admin can view bookings for a particular show
-    [Authorize(Roles = UserRoles.Admin)]
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet("show/{showId:int}")]
     public async Task<ActionResult<IEnumerable<BookingResponse>>> ByShow(int showId) => Ok(await service.GetBookingsByShowIdAsync(showId));
 
     // Customer/Admin can create bookings
-    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
+    [Authorize(Policy = "CustomerOrAdmin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateBookingRequest request)
     {
@@ -85,7 +85,7 @@ public class BookingsController(IBookingService service) : ControllerBase
     }
 
     // Customer can cancel own booking. Admin can cancel any booking.
-    [Authorize(Roles = UserRoles.Customer + "," + UserRoles.Admin)]
+    [Authorize(Policy = "CustomerOrAdmin")]
     [HttpPut("{id:int}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {

@@ -29,6 +29,10 @@ export class Navbar {
     return this.authService.isAdmin();
   }
 
+  get isCustomer(): boolean {
+    return this.authService.isCustomer();
+  }
+
   onLogout(): void {
     this.authService.logout();
     this.cdr.markForCheck();

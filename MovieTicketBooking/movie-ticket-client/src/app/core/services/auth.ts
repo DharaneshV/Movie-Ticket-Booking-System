@@ -53,6 +53,11 @@ export class AuthService {
     return user?.role === 'Admin';
   }
 
+  isCustomer(): boolean {
+    const user = this.currentUser();
+    return user?.role === 'Customer';
+  }
+
   private getUserFromToken(): UserInfo | null {
     const token = this.getToken();
     if (!token) return null;

@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MovieTicketBooking.Application.DTOs.Auth;
 using MovieTicketBooking.Application.Interfaces;
@@ -34,6 +36,24 @@ public class AuthController(IUserService _userService) : ControllerBase
 			userId = result.UserId,
 			expiresAt = result.ExpiresAt,
 			token = result.Token
+		});
+	}
+
+	[Authorize]
+	[HttpGet("me")]
+	public IActionResult GetCurrentUser()
+	{
+		var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+		var name = User.FindFirstValue(ClaimTypes.Name);
+		var email = User.FindFirstValue(ClaimTypes.Email);
+		var role = User.FindFirstValue(ClaimTypes.Role);
+
+		return Ok(new
+		{
+			userId = int.TryParse(userId, out var id) ? id : 0,
+			fullName = name,
+			email = email,
+			role = role
 		});
 	}
 }

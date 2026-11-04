@@ -40,7 +40,7 @@
             <ng-container *ngIf="isLoggedIn">
               <li class="nav-item me-3 text-light d-flex align-items-center">
                 <span class="me-2">👋 {{ user?.fullName }}</span>
-                <span class="badge" [ngClass]="isAdmin ? 'bg-danger' : 'bg-primary'">
+                <span class="badge" [ngClass]="isAdmin ? 'bg-danger' : (isCustomer ? 'bg-success' : 'bg-primary')">
                   {{ user?.role }}
                 </span>
               </li>
